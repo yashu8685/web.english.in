@@ -1,0 +1,31 @@
+# ── Dependencies ─────────────────────────────────────────────────────────────
+node_modules/
+
+# ── Build output ─────────────────────────────────────────────────────────────
+dist/
+build/
+*.tsbuildinfo
+
+# ── Environment / secrets ────────────────────────────────────────────────────
+# Keep .env.example committed; never commit real values.
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ── Tests / browsers ─────────────────────────────────────────────────────────
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# ── Tooling ──────────────────────────────────────────────────────────────────
+.vite/
+.turbo/
+
+# ── Logs / OS noise ──────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
