@@ -87,6 +87,7 @@ Vite inlines it into the bundle:
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | Vite dev server on `:5173` |
+| `npm run dev:force` | Same, rebuilding the dependency cache (`vite --force`) |
 | `npm run build` | Production build into `dist/` |
 | `npm run preview` | Preview the production build |
 | `npm run typecheck` | Type-check the app |
@@ -220,6 +221,47 @@ npx playwright install chromium
 separate dev terminal is required. The suites fail fast if the ports are taken.
 
 Set `TEST_DATABASE_URL` to point the test run at a different Postgres instance.
+
+### Troubleshooting: blank page / "504 Outdated Optimize Dep"
+
+Symptom in the browser console:
+
+```
+Failed to load resource: 504 (Outdated Optimize Dep)
+TypeError: Failed to fetch dynamically imported module: /src/routes/login.tsx
+```
+
+The Vite dev server is holding an old dependency hash while
+`node_modules/.vite` is stale or was deleted (this happens after running the
+E2E suite, switching branches, or reinstalling packages). The page is not
+broken — the cache is.
+
+Fix it manually:
+
+```bash
+# 1. Stop the web dev server (Ctrl+C, or: fuser -k 5173/tcp)
+rm -rf node_modules/.vite node_modules/.vite-temp
+npm run dev -- --force        # or: npm run dev:force
+```
+
+Then hard-reload the tab (`Ctrl+Shift+R` / `Cmd+Shift+R`). Restarting without
+clearing the cache, or a normal reload, keeps the stale module URLs and the
+error persists.
+
+### Troubleshooting: "Port 5173 is already in use"
+
+Another Vite dev server already owns the port — usually a second `npm run dev`,
+or one left running from an earlier terminal/session. `strictPort` is enabled,
+so Vite exits instead of silently moving to 5174.
+
+```bash
+ss -ltnp | grep ':5173'     # who holds it
+fuser -k 5173/tcp           # stop that instance
+npm run dev                 # start exactly one
+```
+
+Run the API and web apps in **two separate terminals** and don't start a second
+copy of either: two servers can't share a port.
 
 ## Build and deploy
 
